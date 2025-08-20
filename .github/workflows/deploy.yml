@@ -20,8 +20,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Verify directory structure
+        run: |
+          echo "Contents of root:"
+          ls -R .
+
       - name: Install Salesforce CLI
-        run: npm install sfdx-cli --global
+        run: npm install @salesforce/cli --location=global
 
       - name: Authenticate to Salesforce (device login)
         run: |
@@ -35,6 +40,8 @@ jobs:
 
       - name: Deploy to Salesforce
         run: |
+          echo "Deploying from $(pwd)"
+          tree . -L 2 || true
           if [ "${{ github.event.inputs.environment }}" == "Production" ]; then
             echo "Deploying to Production..."
             sfdx force:source:deploy -p force-app -u prod --testlevel NoTestRun
