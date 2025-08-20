@@ -1,4 +1,4 @@
-name: Deploy to Salesforce via SF CLI
+name: Deploy to Salesforce via SFDX
 
 on:
   workflow_dispatch:
@@ -21,28 +21,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Salesforce CLI
-        run: npm install @salesforce/cli --location=global
+        run: npm install sfdx-cli --global
 
       - name: Authenticate to Salesforce (device login)
         run: |
           if [ "${{ github.event.inputs.environment }}" == "Production" ]; then
             echo "Authenticating to Production..."
-            sf org login device -o https://login.salesforce.com -a prod
+            sfdx force:auth:device:login -d -a prod -r https://login.salesforce.com
           else
             echo "Authenticating to Sandbox..."
-            sf org login device -o https://test.salesforce.com -a sandbox
+            sfdx force:auth:device:login -d -a sandbox -r https://test.salesforce.com
           fi
 
-      - name: Deploy to Salesforce using sf
+      - name: Deploy to Salesforce
         run: |
-          echo "Deploying from $(pwd)"
-          echo "Contents:"
-          ls -R .
-
           if [ "${{ github.event.inputs.environment }}" == "Production" ]; then
             echo "Deploying to Production..."
-            sf project deploy start --source-dir force-app --target-org prod --ignore-conflicts
+            sfdx force:source:deploy -p force-app -u prod --testlevel NoTestRun
           else
             echo "Deploying to Sandbox..."
-            sf project deploy start --source-dir force-app --target-org sandbox --ignore-conflicts
+            sfdx force:source:deploy -p force-app -u sandbox --testlevel NoTestRun
           fi
